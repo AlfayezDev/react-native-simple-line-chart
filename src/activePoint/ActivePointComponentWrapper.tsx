@@ -33,6 +33,7 @@ const ActivePointComponentWrapper = ({
     activePointComponent?: ActivePointComponent;
     activePointComponentWithSharedValue?: ActivePointComponentSharedValue;
 }) => {
+    const isRTL = I18nManager.isRTL;
     const SPACE_BETWEEN_COMPONENT_AND_LINE = 15;
     const SIDE_SWITCH_HYSTERESIS = 24;
     const wrapperRef = React.useRef<View>(null);
@@ -67,9 +68,7 @@ const ActivePointComponentWrapper = ({
             }
             const requiredSpace =
                 componentWidth + SPACE_BETWEEN_COMPONENT_AND_LINE;
-            const availableSpace = I18nManager.isRTL
-                ? xPosition
-                : width - xPosition;
+            const availableSpace = isRTL ? xPosition : width - xPosition;
 
             if (isFlippedSV.value === -1) {
                 isFlippedSV.value = availableSpace < requiredSpace ? 1 : 0;
@@ -85,7 +84,7 @@ const ActivePointComponentWrapper = ({
                 isFlippedSV.value = 0;
             }
 
-            const targetX = I18nManager.isRTL
+            const targetX = isRTL
                 ? isFlippedSV.value === 1
                     ? xPosition - width + requiredSpace
                     : xPosition - width - SPACE_BETWEEN_COMPONENT_AND_LINE
@@ -104,7 +103,7 @@ const ActivePointComponentWrapper = ({
                 },
             );
         },
-        [width],
+        [width, isRTL],
     );
 
     const viewAnimatedStyle = useAnimatedStyle(() => {

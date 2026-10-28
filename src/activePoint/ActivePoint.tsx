@@ -61,6 +61,7 @@ const ActivePoint = ({
     verticalLineDashArray: number[];
     animateTransition: boolean;
 }) => {
+    const isRTL = I18nManager.isRTL;
     const positions = useSharedValue<PositionSharedValue[]>([]);
     const activePointSV = useSharedValue<DataPoint | undefined>({
         x: 0,
@@ -209,10 +210,10 @@ const ActivePoint = ({
 
         return {
             position: 'absolute' as const,
-            left: !I18nManager.isRTL
+            left: !isRTL
                 ? verticalLineActivePosition.value - verticalLineWidth / 2
                 : undefined,
-            right: !I18nManager.isRTL
+            right: !isRTL
                 ? undefined
                 : verticalLineActivePosition.value - verticalLineWidth / 2,
             top: 0,
@@ -225,10 +226,10 @@ const ActivePoint = ({
     const activePointStyle = useAnimatedStyle(() => {
         return {
             position: 'absolute' as const,
-            left: I18nManager.isRTL
+            left: isRTL
                 ? undefined
                 : activePointPositionX.value - (radius + borderWidth),
-            right: I18nManager.isRTL
+            right: isRTL
                 ? activePointPositionX.value - (radius + borderWidth)
                 : undefined,
             top: activePointPositionY.value - (radius + borderWidth),
