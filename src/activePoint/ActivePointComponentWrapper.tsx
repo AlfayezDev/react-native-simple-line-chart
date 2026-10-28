@@ -1,4 +1,4 @@
-import React, {useLayoutEffect, useState} from 'react';
+import React, {useState} from 'react';
 import {I18nManager, View} from 'react-native';
 import Animated, {
     SharedValue,
@@ -36,7 +36,6 @@ const ActivePointComponentWrapper = ({
     const isRTL = I18nManager.isRTL;
     const SPACE_BETWEEN_COMPONENT_AND_LINE = 15;
     const SIDE_SWITCH_HYSTERESIS = 24;
-    const wrapperRef = React.useRef<View>(null);
     const activeComponentWidthSV = useSharedValue<number>(0);
     const isFlippedSV = useSharedValue<number>(-1);
     const translateXSV = useSharedValue<number>(0);
@@ -44,18 +43,6 @@ const ActivePointComponentWrapper = ({
         undefined | DataPoint
     >(undefined);
     const forceRerender = useForceReRender();
-
-    const calculateWidth = () => {
-        wrapperRef.current?.measureInWindow((_x, _y, componentWidth) => {
-            if (componentWidth > 0) {
-                activeComponentWidthSV.value = componentWidth;
-            }
-        });
-    };
-
-    useLayoutEffect(() => {
-        calculateWidth();
-    }, [activePointComponent]);
 
     useAnimatedReaction(
         () => ({
@@ -92,24 +79,17 @@ const ActivePointComponentWrapper = ({
                   ? xPosition - requiredSpace
                   : xPosition + SPACE_BETWEEN_COMPONENT_AND_LINE;
 
-            translateXSV.value = withTiming(
-                targetX,
-                {duration: 100},
-                finished => {
-                    'worklet';
-                    if (finished) {
-                        scheduleOnRN(calculateWidth);
-                    }
-                },
-            );
+            const clampedX = isRTL
+                ? Math.min(0, Math.max(componentWidth - width, targetX))
+                : Math.max(0, Math.min(width - componentWidth, targetX));
+
+            translateXSV.value = withTiming(clampedX, {duration: 100});
         },
         [width, isRTL],
     );
 
     const viewAnimatedStyle = useAnimatedStyle(() => {
         return {
-            zIndex: 2,
-            flexDirection: 'row',
             transform: [{translateX: translateXSV.value}],
             opacity:
                 activeComponentWidthSV.value === 0 ? 0 : pointOpacity.value,
@@ -132,15 +112,15 @@ const ActivePointComponentWrapper = ({
     );
 
     return (
-        <Animated.View style={viewAnimatedStyle}>
+        <Animated.View
+            style={[{zIndex: 2, flexDirection: 'row'}, viewAnimatedStyle]}
+        >
             <View
-                ref={wrapperRef}
                 onLayout={event => {
                     const {width: componentWidth} = event.nativeEvent.layout;
-                    if (componentWidth > activeComponentWidthSV.value) {
+                    if (componentWidth > 0) {
                         activeComponentWidthSV.value = componentWidth;
                     }
-                    calculateWidth();
                 }}
             >
                 {activePointComponentWithSharedValue !== undefined &&
